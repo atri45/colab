@@ -36,7 +36,7 @@ module datapath(
 	input wire alusrcE,regdstE,
 	input wire regwriteE,
 	input wire[4:0] alucontrolE,
-	output wire flushE,
+	output wire flushE,stallE,
 	input wire hilodstE,hilowriteE,hiloreadE,
 	//mem stage
 	input wire memtoregM,
@@ -44,10 +44,12 @@ module datapath(
 	output wire[31:0] aluoutM,writedataM,
 	input wire[31:0] readdataM,
     input hilodstM,hilowriteM,
+    output wire stallM,
 	//writeback stage
 	input wire memtoregW,
 	input wire regwriteW,
-	input wire hilodstW,hilowriteW
+	input wire hilodstW,hilowriteW,
+	output wire stallW
     );
 	
 	//fetch stage
@@ -158,16 +160,16 @@ module datapath(
 	mux2 #(5) wrmux(rtE,rdE,regdstE,writeregE);
 
 	//mem stage
-	flopr #(32) r1M(clk,rst,srcb2E,writedataM);
-	flopr #(32) r2M(clk,rst,aluoutE,aluoutM);
-	flopr #(5) r3M(clk,rst,writeregE,writeregM);
-    flopr #(64) r4M(clk,rst,hilo_iE,hilo_iM);
+	flopenr #(32) r1M(clk,rst,~stallM,srcb2E,writedataM);
+	flopenr #(32) r2M(clk,rst,~stallM,aluoutE,aluoutM);
+	flopenr #(5) r3M(clk,rst,~stallM,writeregE,writeregM);
+    flopenr #(64) r4M(clk,rst,~stallM,hilo_iE,hilo_iM);
     
 	//writeback stage
-	flopr #(32) r1W(clk,rst,aluoutM,aluoutW);
-	flopr #(32) r2W(clk,rst,readdataM,readdataW);
-	flopr #(5) r3W(clk,rst,writeregM,writeregW);
-	flopr #(64) r4W(clk,rst,hilo_iM,hilo_iW);
+	flopenr #(32) r1W(clk,rst,~stallW,aluoutM,aluoutW);
+	flopenr #(32) r2W(clk,rst,~stallW,readdataM,readdataW);
+	flopenr #(5) r3W(clk,rst,~stallW,writeregM,writeregW);
+	flopenr #(64) r4W(clk,rst,~stallW,hilo_iM,hilo_iW);
 	
 	hilo_reg hilo(clk,rst,hilowriteW,hilo_iW[63:32],hilo_iW[31:0],hilo_oW[63:32],hilo_oW[31:0]);
 	

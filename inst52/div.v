@@ -1,80 +1,132 @@
+//////////////////////////////////////////////////////////////////////
+////                                                              ////
+//// Copyright (C) 2014 leishangwen@163.com                       ////
+////                                                              ////
+//// This source file may be used and distributed without         ////
+//// restriction provided that this copyright statement is not    ////
+//// removed from the file and that any derivative work contains  ////
+//// the original copyright notice and the associated disclaimer. ////
+////                                                              ////
+//// This source file is free software; you can redistribute it   ////
+//// and/or modify it under the terms of the GNU Lesser General   ////
+//// Public License as published by the Free Software Foundation; ////
+//// either version 2.1 of the License, or (at your option) any   ////
+//// later version.                                               ////
+////                                                              ////
+//// This source is distributed in the hope that it will be       ////
+//// useful, but WITHOUT ANY WARRANTY; without even the implied   ////
+//// warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR      ////
+//// PURPOSE.  See the GNU Lesser General Public License for more ////
+//// details.                                                     ////
+////                                                              ////
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+// Module:  div
+// File:    div.v
+// Author:  Lei Silei
+// E-mail:  leishangwen@163.com
+// Revision: 1.0
+//////////////////////////////////////////////////////////////////////
+
+`include "defines2.vh"
+
 module div(
-    input               clk,
-    input               rst,
-    input               flush,
-    input [31:0]        a,  //divident
-    input [31:0]        b,  //divisor
-    input               valid,
-    input               sign,   //1:signed
 
-    // output reg          ready,
-    output wire         div_stall,
-    output [63:0]       result
-    );
-    /*
-    1. 先取绝对值，计算出余数和商。再根据被除数、除数符号对结果调整
-    2. 计算过程中，由于保证了remainer为正，因此最高位为0，可以用32位存储。而除数需用33位
-    */
-    reg [31:0] a_save, b_save;
-    reg [63:0] SR; //shift register
-    reg [32 :0] NEG_DIVISOR;  //divisor 2's complement
-    wire [31:0] REMAINER, QUOTIENT;
-    assign REMAINER = SR[63:32];
-    assign QUOTIENT = SR[31: 0];
+	input wire			clk,
+	input wire			rst,
+	
+	input wire			signed_div_i,
+	input wire[31:0]	opdata1_i,
+	input wire[31:0]	opdata2_i,
+	input wire			start_i,
+	input wire			annul_i,
 
-    wire [31:0] divident_abs;
-    wire [32:0] divisor_abs;
-    wire [31:0] remainer, quotient;
+	output reg[63:0]	result_o,
+	output reg			ready_o
+);
 
-    assign divident_abs = (sign & a[31]) ? ~a + 1'b1 : a;
-    //余数符号与被除数相同
-    assign remainer = (sign & a_save[31]) ? ~REMAINER + 1'b1 : REMAINER;
-    assign quotient = sign & (a_save[31] ^ b_save[31]) ? ~QUOTIENT + 1'b1 : QUOTIENT;
-    assign result = {remainer,quotient};
+	wire[32:0]	div_temp;
+	reg[5:0]	cnt;
+	reg[64:0]	dividend;
+	reg[1:0]	state;
+	reg[31:0]	divisor;
+	reg[31:0]	temp_op1;
+	reg[31:0]	temp_op2;
 
-    wire CO;
-    wire [32:0] sub_result;
-    wire [32:0] mux_result;
-    //sub
-    assign {CO,sub_result} = {1'b0,REMAINER} + NEG_DIVISOR;
-    //mux
-    assign mux_result = CO ? sub_result : {1'b0,REMAINER};
+	assign div_temp = {1'b0,dividend[63:32]} - {1'b0,divisor};
 
-    //state machine
-    reg [5:0] cnt;
-    reg start_cnt;
-    always @(posedge clk) begin
-        if(rst | flush) begin
-            cnt <= 0;
-            start_cnt <= 0;
-        end
-        else if(!start_cnt & valid) begin
-            cnt <= 1;
-            start_cnt <= 1;
-            //save a,b
-            a_save <= a;
-            b_save <= b;
+	always @ (posedge clk) begin
+		if (rst == `RstEnable) begin
+			state <= `DivFree;
+			ready_o <= `DivResultNotReady;
+			result_o <= {`ZeroWord,`ZeroWord};
+		end else begin
+		  case (state)
+		  	`DivFree: begin
+		  		if(start_i == `DivStart && annul_i == 1'b0) begin
+		  			if(opdata2_i == `ZeroWord) begin
+		  				state <= `DivByZero;
+		  			end else begin
+		  				state <= `DivOn;
+		  				cnt <= 6'b000000;
+		  				if(signed_div_i == 1'b1 && opdata1_i[31] == 1'b1 ) begin
+		  					temp_op1 = ~opdata1_i + 1;
+		  				end else begin
+		  					temp_op1 = opdata1_i;
+		  				end
+		  				if(signed_div_i == 1'b1 && opdata2_i[31] == 1'b1 ) begin
+		  					temp_op2 = ~opdata2_i + 1;
+		  				end else begin
+		  					temp_op2 = opdata2_i;
+		  				end
+		  				dividend <= {`ZeroWord,`ZeroWord};
+						dividend[32:1] <= temp_op1;
+						divisor <= temp_op2;
+             		end
+          		end else begin
+					ready_o <= `DivResultNotReady;
+					result_o <= {`ZeroWord,`ZeroWord};
+				end          	
+		  	end
+		  	`DivByZero: begin
+         		dividend <= {`ZeroWord,`ZeroWord};
+          		state <= `DivEnd;		 		
+		  	end
+		  	`DivOn: begin
+		  		if(annul_i == 1'b0) begin
+		  			if(cnt != 6'b100000) begin
+               			if(div_temp[32] == 1'b1) begin
+                  			dividend <= {dividend[63:0] , 1'b0};
+               			end else begin
+                  			dividend <= {div_temp[31:0] , dividend[31:0] , 1'b1};
+               			end
+               		cnt <= cnt + 1;
+             		end else begin
+						if((signed_div_i == 1'b1) && ((opdata1_i[31] ^ opdata2_i[31]) == 1'b1)) begin
+							dividend[31:0] <= (~dividend[31:0] + 1);
+						end
+						if((signed_div_i == 1'b1) && ((opdata1_i[31] ^ dividend[64]) == 1'b1)) begin              
+							dividend[64:33] <= (~dividend[64:33] + 1);
+						end
+						state <= `DivEnd;
+						cnt <= 6'b000000;
+            		end
+		  		end else begin
+		  			state <= `DivFree;
+		  		end	
+		  	end
+		  	`DivEnd: begin
+        		result_o <= {dividend[64:33], dividend[31:0]};  
+          		ready_o <= `DivResultReady;
+          		if(start_i == `DivStop) begin
+          			state <= `DivFree;
+					ready_o <= `DivResultNotReady;
+					result_o <= {`ZeroWord,`ZeroWord};       	
+          		end		  	
+		  	end
+		  	endcase
+		end
+	end
 
-            //Register init
-            SR[63:0] <= {31'b0,divident_abs,1'b0}; //left shift one bit initially
-            NEG_DIVISOR <= (sign & b[31]) ? {1'b1,b} : ~{1'b0,b} + 1'b1; //divisor_abs的补码
-        end
-        else if(start_cnt) begin
-            if(cnt==32) begin
-                cnt <= 0;
-                start_cnt <= 0;
-                
-                //Output result
-                SR[63:32] <= mux_result[31:0];
-                SR[0] <= CO;
-            end
-            else begin
-                cnt <= cnt + 1;
-
-                SR[63:0] <= {mux_result[30:0],SR[31:1],CO,1'b0}; //wsl: write and shift left
-            end
-        end
-    end
-    
-    assign div_stall = |cnt; //只有当cnt=0时不暂停
 endmodule

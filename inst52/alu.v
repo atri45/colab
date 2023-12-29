@@ -32,14 +32,26 @@ module alu(
 //	output reg overflow,
 //	output wire zero
     );
-    wire div_valid, div_signed, div_cancel;
+    wire div_signed, div_cancel, div_valid;
     wire [63:0]div_result;
     wire div_ready;
+    reg start_i = 0, signed_div_i=0;
     assign div_cancel = 0;
     assign div_signed = (alucontrol == `DIV_CONTROL);
-    assign div_valid = ((alucontrol == `DIV_CONTROL)||(alucontrol == `DIVU_CONTROL));
-    div DIV(~clk,rst,flushE,a,b,div_valid,div_signed,div_stall,div_result);
-
+    assign div_valid = ~div_ready & ((alucontrol == `DIV_CONTROL)|(alucontrol == `DIVU_CONTROL));
+    div DIV(~clk,rst,signed_div_i,a,b,start_i,div_cancel,div_result,div_ready);
+    assign div_stall = start_i;
+    always@(posedge div_valid or posedge div_ready or posedge div_signed)begin
+        if(div_valid)
+            start_i = 1'b1;
+        if(div_signed)
+            signed_div_i = 1'b1;
+        if(div_ready)begin
+            start_i = 1'b0;
+            signed_div_i = 1'b0;
+        end
+    end
+    
 	always @(*) begin
         case (alucontrol)
             `AND_CONTROL: y <= a & b;

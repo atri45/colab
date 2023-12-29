@@ -36,16 +36,18 @@ module mips(
 	wire pcsrcD,equalD;
 	
 	//execute stage
-	wire regdstE,alusrcE,memtoregE,regwriteE,flushE;
+	wire regdstE,alusrcE,memtoregE,regwriteE,flushE,stallE;
 	wire [4:0] alucontrolE;
 	wire hilodstE,hilowriteE,hiloreadE;
 //	wire divE,signed_divE;
 	
 	//mem stage
+	wire stallM;
 	wire memtoregM,regwriteM;
 	wire hilodstM,hilowriteM;
 	
 	//write back stage
+	wire stallW;
 	wire memtoregW,regwriteW;
 	wire hilodstW,hilowriteW;
 
@@ -57,17 +59,19 @@ module mips(
 		pcsrcD,branchD,equalD,jumpD,
 		
 		//execute stage
-		flushE,
+		flushE,stallE,
 		memtoregE,alusrcE,
 		regdstE,regwriteE,	
 		alucontrolE,
         hilodstE,hilowriteE,hiloreadE,
         
 		//mem stage
+		stallM,
 		memtoregM,memwriteM,regwriteM,
 		hilodstM,hilowriteM,
 		
 		//write back stage
+		stallW,
 		memtoregW,regwriteW,
 		hilodstW,hilowriteW
 		);
@@ -87,7 +91,7 @@ module mips(
 		alusrcE,regdstE,
 		regwriteE,
 		alucontrolE,
-		flushE,
+		flushE,stallE,
 		hilodstE,hilowriteE,hiloreadE,
 		//mem stage
 		memtoregM,
@@ -95,10 +99,12 @@ module mips(
 		aluoutM,writedataM,
 		readdataM,
 		hilodstM,hilowriteM,
+		stallM,
 		//writeback stage
 		memtoregW,
 		regwriteW,
-		hilodstW,hilowriteW
+		hilodstW,hilowriteW,
+		stallW
 	    );
 	
 endmodule
