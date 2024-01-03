@@ -25,7 +25,9 @@ module mips(
 	output wire[31:0] pcF,
 	input wire[31:0] instrF,
 	output wire memwriteM,
+	output wire memreadM,
 	output wire[31:0] aluoutM,writedataM,
+	output wire[3:0] selectM,
 	input wire[31:0] readdataM 
     );
     
@@ -69,6 +71,7 @@ module mips(
 		stallM,
 		memtoregM,memwriteM,regwriteM,
 		hilodstM,hilowriteM,
+		memreadM,
 		
 		//write back stage
 		stallW,
@@ -100,6 +103,7 @@ module mips(
 		readdataM,
 		hilodstM,hilowriteM,
 		stallM,
+		selectM,
 		//writeback stage
 		memtoregW,
 		regwriteW,

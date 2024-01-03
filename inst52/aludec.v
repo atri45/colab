@@ -35,6 +35,14 @@ module aludec(
             `SLTIU:alucontrol <= `SLTU_CONTROL;  
             `ADDI:alucontrol <= `ADD_CONTROL; 
             `ADDIU:alucontrol <= `ADDU_CONTROL;  
+            `LB:alucontrol <= `ADDU_CONTROL;
+            `LBU:alucontrol <= `ADDU_CONTROL;
+            `LH:alucontrol <=  `ADDU_CONTROL;
+            `LHU:alucontrol <= `ADDU_CONTROL;
+            `LW:alucontrol <= `ADDU_CONTROL;
+            `SB:alucontrol <= `ADDU_CONTROL;
+            `SH:alucontrol <= `ADDU_CONTROL;
+            `SW:alucontrol <= `ADDU_CONTROL;
             `R_TYPE: 
                 case(funct)
                     `AND: alucontrol <=`AND_CONTROL;

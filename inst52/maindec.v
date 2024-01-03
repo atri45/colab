@@ -28,7 +28,8 @@ module maindec(
 	output wire regdst,regwrite,
 	output wire jump,
 	output wire sign_ext,
-	output wire hilodst,hilowrite,hiloread
+	output wire hilodst,hilowrite,hiloread,
+	output wire memread
 //	output wire[1:0] aluop
     );
     
@@ -38,8 +39,6 @@ module maindec(
 	always @(*) begin
 		case (op)
 			6'b000000:controls <= 7'b1100000;//R-TYRE
-			6'b100011:controls <= 7'b1010010;//LW
-			6'b101011:controls <= 7'b0010100;//SW
 			6'b000100:controls <= 7'b0001000;//BEQ
 			6'b000010:controls <= 7'b0000001;//J
 			//6'b001000:controls <= 7'b1010000;//ADDI
@@ -50,7 +49,9 @@ module maindec(
             `ADDI:controls <= 7'b1010000;
             `ADDIU:controls <= 7'b1010000;
             `SLTI:controls <= 7'b1010000;
-            `SLTIU:controls <= 7'b1010000;  
+            `SLTIU:controls <= 7'b1010000; 
+            `LB,`LBU,`LH,`LHU,`LW:controls <= 7'b1010010;
+            `SB,`SH,`SW:controls <= 7'b0010100; 
 			default:  controls <= 7'b0000000;//illegal op	
 		endcase
 	end
@@ -69,6 +70,11 @@ module maindec(
                      (op == `R_TYPE && funct == `DIVU));                
     assign hiloread = ((op == `R_TYPE && funct == `MFHI) ||
                     (op == `R_TYPE && funct == `MFLO));        
+                    
+    assign memread = ((op == `LB)||(op==`LBU)||(op == `LH)||(op==`LHU)||(op == `LW));  
+    
+    
+         
               
 //    //³ý·¨
 //    assign div = ((op == `R_TYPE && funct == `DIV) || (op == `R_TYPE && funct == `DIVU));    

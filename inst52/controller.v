@@ -40,6 +40,7 @@ module controller(
 	input wire stallM,
 	output wire memtoregM,memwriteM,regwriteM,
 	output wire hilodstM,hilowriteM,
+	output wire memreadM,
 	
 	//write back stage
 	input wire stallW,
@@ -53,6 +54,7 @@ module controller(
 		regdstD,regwriteD;
 	wire[4:0] alucontrolD;
 	wire hilodstD,hilowriteD,hiloreadD;
+	wire memreadD;
 //	wire divD,signed_divD;
 	
 	//execute stage
@@ -65,7 +67,8 @@ module controller(
 		regdstD,regwriteD,
 		jumpD,
 		sign_ext,
-		hilodstD,hilowriteD,hiloreadD
+		hilodstD,hilowriteD,hiloreadD,
+		memreadD
 //		divD,signed_divD
 //		aluopD
 		);
@@ -74,15 +77,15 @@ module controller(
 	assign pcsrcD = branchD & equalD;
 
 	//pipeline registers
-	flopenrc #(14) regE(
+	flopenrc #(15) regE(
 		clk,rst,~stallE,flushE,
-		{memtoregD,memwriteD,alusrcD,regdstD,regwriteD,alucontrolD,hilodstD,hilowriteD,hiloreadD},
-		{memtoregE,memwriteE,alusrcE,regdstE,regwriteE,alucontrolE,hilodstE,hilowriteE,hiloreadE}
+		{memtoregD,memwriteD,alusrcD,regdstD,regwriteD,alucontrolD,hilodstD,hilowriteD,hiloreadD,memreadD},
+		{memtoregE,memwriteE,alusrcE,regdstE,regwriteE,alucontrolE,hilodstE,hilowriteE,hiloreadE,memreadE}
 		);
-	flopenr #(5) regM(
+	flopenr #(6) regM(
 		clk,rst,~stallM,
-		{memtoregE,memwriteE,regwriteE,hilodstE,hilowriteE},
-		{memtoregM,memwriteM,regwriteM,hilodstM,hilowriteM}
+		{memtoregE,memwriteE,regwriteE,hilodstE,hilowriteE,memreadE},
+		{memtoregM,memwriteM,regwriteM,hilodstM,hilowriteM,memreadM}
 		);
 	flopenr #(4) regW(
 		clk,rst,~stallW,
