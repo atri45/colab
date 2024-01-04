@@ -29,6 +29,7 @@ module maindec(
 	output wire jump,jalr,
 	output wire sign_ext,
 	output wire hilodst,hilowrite,hiloread,
+	output wire memread,
 	output wire rawrite
 //	output wire[1:0] aluop
     );
@@ -38,7 +39,7 @@ module maindec(
 	assign {regwrite,regdst,alusrc,branch,memwrite,memtoreg,jump,jalr} = controls;
 	always @(*) begin
 		case (op)
-			6'b000000:begin
+			`R_TYPE:begin
 			    case(funct)
 			        `JR: controls <= 8'b00010010;
 			        `JALR: controls <= 8'b11010011;
@@ -58,6 +59,10 @@ module maindec(
             `ADDIU:controls <= 8'b10100000;
             `SLTI:controls <= 8'b10100000;
             `SLTIU:controls <= 8'b10100000;
+            
+			`LB,`LBU,`LH,`LHU,`LW:controls <= 8'b10100100;
+            `SB,`SH,`SW:controls <= 8'b00101000; 
+            
             `J:controls <= 8'b00000010;
             `JAL:controls <= 8'b10000011;
             `BEQ:controls <= 8'b00010000;
@@ -83,6 +88,8 @@ module maindec(
                      (op == `R_TYPE && funct == `DIVU));                
     assign hiloread = ((op == `R_TYPE && funct == `MFHI) ||
                     (op == `R_TYPE && funct == `MFLO));
+                    
+    assign memread = ((op == `LB)||(op==`LBU)||(op == `LH)||(op==`LHU)||(op == `LW));                 
     
     //Ð´»Ø31ºÅ¼Ä´æÆ÷
     assign rawrite = ((op == `JAL) || 

@@ -42,10 +42,11 @@ module datapath(
 	//mem stage
 	input wire memtoregM,
 	input wire regwriteM,
-	output wire[31:0] aluoutM,writedataM,
+	output wire[31:0] aluoutM,writedata_o,
 	input wire[31:0] readdataM,
     input hilodstM,hilowriteM,
     output wire stallM,
+    output wire[3:0]selectM,
 	//writeback stage
 	input wire memtoregW,
 	input wire regwriteW,
@@ -75,9 +76,12 @@ module datapath(
 	wire [63:0] hilo_iE,hilo_o2E;
 	wire [31:0] hilo_oE;
 	wire div_stallE;
+	wire [5:0]opE;
 	//mem stage
 	wire [4:0] writeregM;
 	wire [63:0] hilo_iM;
+	wire [31:0] writedataM,readdata_o;
+	wire [5:0] opM;
 	//writeback stage
 	wire [4:0] writeregW;
 	wire [31:0] aluoutW,readdataW,resultW;
@@ -156,7 +160,8 @@ module datapath(
 	flopenrc #(5) r5E(clk,rst,~stallE,flushE,rtD,rtE);
 	flopenrc #(5) r6E(clk,rst,~stallE,flushE,rdD,rdE);
     flopenrc #(5) r7E(clk,rst,~stallE,flushE,saD,saE);
-    flopenrc #(32) r8E(clk,rst,~stallE,flushE,pcplus8D,pcplus8E);
+    flopenrc #(6) r8E(clk,rst,~stallE,flushE,opD,opE);
+    flopenrc #(32) r9E(clk,rst,~stallE,flushE,pcplus8D,pcplus8E);
 
 	mux3 #(32) forwardaemux(srcaE,resultW,aluoutM,forwardaE,srca2E);
 	mux3 #(32) forwardbemux(srcbE,resultW,aluoutM,forwardbE,srcb2E);
@@ -172,10 +177,12 @@ module datapath(
 	flopenr #(32) r2M(clk,rst,~stallM,aluout2E,aluoutM);
 	flopenr #(5) r3M(clk,rst,~stallM,writereg2E,writeregM);
     flopenr #(64) r4M(clk,rst,~stallM,hilo_iE,hilo_iM);
+    flopenr #(6) r5M(clk,rst,~stallM,opE,opM);
+    data_mem_shell dms(opM,aluoutM[1:0],readdataM,writedataM,readdata_o,writedata_o,selectM);
     
 	//writeback stage
 	flopenr #(32) r1W(clk,rst,~stallW,aluoutM,aluoutW);
-	flopenr #(32) r2W(clk,rst,~stallW,readdataM,readdataW);
+	flopenr #(32) r2W(clk,rst,~stallW,readdata_o,readdataW);
 	flopenr #(5) r3W(clk,rst,~stallW,writeregM,writeregW);
 	flopenr #(64) r4W(clk,rst,~stallW,hilo_iM,hilo_iW);
 	
