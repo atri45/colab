@@ -26,17 +26,18 @@ module mips(
 	input wire[31:0] instrF,
 	output wire memwriteM,
 	output wire[31:0] aluoutM,writedataM,
-	input wire[31:0] readdataM 
+	input wire[31:0] readdataM
     );
     
     wire sign_ext;
     
 	//decode stage
 	wire [5:0] opD,functD;
-	wire pcsrcD,equalD;
+	wire [4:0] rtD;
+	wire pcsrcD,cmpresultD,branchD,jumpD;
 	
 	//execute stage
-	wire regdstE,alusrcE,memtoregE,regwriteE,flushE,stallE;
+	wire regdstE,alusrcE,memtoregE,regwriteE,flushE,stallE,jalrE,rawriteE;
 	wire [4:0] alucontrolE;
 	wire hilodstE,hilowriteE,hiloreadE;
 //	wire divE,signed_divE;
@@ -55,12 +56,12 @@ module mips(
 		clk,rst,
 		sign_ext,
 		//decode stage
-		opD,functD,
-		pcsrcD,branchD,equalD,jumpD,
-		
+		opD,functD,rtD,
+		pcsrcD,branchD,cmpresultD,jumpD,
+
 		//execute stage
 		flushE,stallE,
-		memtoregE,alusrcE,
+		memtoregE,alusrcE,jalrE,rawriteE,
 		regdstE,regwriteE,	
 		alucontrolE,
         hilodstE,hilowriteE,hiloreadE,
@@ -84,10 +85,10 @@ module mips(
 		sign_ext,
 		pcsrcD,branchD,
 		jumpD,
-		equalD,
-		opD,functD,
+		cmpresultD,
+		opD,functD,rtD,
 		//execute stage
-		memtoregE,
+		memtoregE,jalrE,rawriteE,
 		alusrcE,regdstE,
 		regwriteE,
 		alucontrolE,
