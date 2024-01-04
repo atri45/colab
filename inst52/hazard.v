@@ -101,7 +101,7 @@ module hazard(
 	assign #1 stallM = stallE;
 	assign #1 stallW = stallE;
 		//stalling D stalls all previous stages
-	assign #1 flushE = 0;
+	assign #1 flushE = stallD & ~stallE;
 		//stalling D flushes next stage
 	// Note: not necessary to stall D stage on store
   	//       if source comes from load;

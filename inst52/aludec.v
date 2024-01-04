@@ -34,8 +34,21 @@ module aludec(
             `SLTI:alucontrol <=`SLT_CONTROL; 
             `SLTIU:alucontrol <= `SLTU_CONTROL;  
             `ADDI:alucontrol <= `ADD_CONTROL; 
-            `ADDIU:alucontrol <= `ADDU_CONTROL;  
-            `R_TYPE: 
+            `ADDIU:alucontrol <= `ADDU_CONTROL;
+            
+            `LB:alucontrol <= `ADDU_CONTROL;
+            `LBU:alucontrol <= `ADDU_CONTROL;
+            `LH:alucontrol <=  `ADDU_CONTROL;
+            `LHU:alucontrol <= `ADDU_CONTROL;
+            `LW:alucontrol <= `ADDU_CONTROL;
+            `SB:alucontrol <= `ADDU_CONTROL;
+            `SH:alucontrol <= `ADDU_CONTROL;
+            `SW:alucontrol <= `ADDU_CONTROL;
+            
+            `J:alucontrol <= `AND_CONTROL;
+            `JAL:alucontrol <= `AND_CONTROL;
+            
+            `R_TYPE:
                 case(funct)
                     `AND: alucontrol <=`AND_CONTROL;
                     `OR: alucontrol <= `OR_CONTROL;
@@ -60,7 +73,9 @@ module aludec(
                     `MULT:alucontrol <=`MULT_CONTROL;
                     `MULTU:alucontrol <= `MULTU_CONTROL; 
                     `DIV:alucontrol <= `DIV_CONTROL;
-                    `DIVU:alucontrol <=`DIVU_CONTROL;        
+                    `DIVU:alucontrol <=`DIVU_CONTROL;
+                    `JR:alucontrol <= `AND_CONTROL;
+                    `JALR:alucontrol <= `AND_CONTROL;
                 endcase
 		endcase
 	end

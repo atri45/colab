@@ -23,15 +23,16 @@
 module controller(
 	input wire clk,rst,
 	output wire sign_ext,
-	
+
 	//decode stage
 	input wire[5:0] opD,functD,
-	output wire pcsrcD,branchD,equalD,jumpD,
-	
+	input wire[4:0] rtD,
+	output wire pcsrcD,branchD,cmpresultD,jumpD,
+
 	//execute stage
 	input wire flushE, stallE,
-	output wire memtoregE,alusrcE,
-	output wire regdstE,regwriteE,	
+	output wire memtoregE,alusrcE,jalrE,rawriteE,
+	output wire regdstE,regwriteE,
 	output wire[4:0] alucontrolE,
 	output wire hilodstE,hilowriteE,hiloreadE,
 //	output wire divE,signed_divE,
@@ -40,6 +41,7 @@ module controller(
 	input wire stallM,
 	output wire memtoregM,memwriteM,regwriteM,
 	output wire hilodstM,hilowriteM,
+	output wire memreadM,
 	
 	//write back stage
 	input wire stallW,
@@ -49,40 +51,43 @@ module controller(
 	
 	//decode stage
 //	wire[1:0] aluopD;
-	wire memtoregD,memwriteD,alusrcD,
-		regdstD,regwriteD;
+	wire memtoregD,memwriteD,alusrcD,regdstD,regwriteD,jalrD,rawriteD;
 	wire[4:0] alucontrolD;
 	wire hilodstD,hilowriteD,hiloreadD;
+	wire memreadD;
 //	wire divD,signed_divD;
 	
 	//execute stage
 	wire memwriteE;
+	wire memreadE;
 
 	maindec md(
-		opD,functD,
+		opD,functD,rtD,
 		memtoregD,memwriteD,
 		branchD,alusrcD,
 		regdstD,regwriteD,
-		jumpD,
+		jumpD,jalrD,
 		sign_ext,
-		hilodstD,hilowriteD,hiloreadD
+		hilodstD,hilowriteD,hiloreadD,
+		memreadD,
+		rawriteD
 //		divD,signed_divD
 //		aluopD
 		);
 	aludec ad(opD,functD,alucontrolD);
 
-	assign pcsrcD = branchD & equalD;
+	assign pcsrcD = branchD & cmpresultD;
 
 	//pipeline registers
-	flopenrc #(14) regE(
+	flopenrc #(16) regE(
 		clk,rst,~stallE,flushE,
-		{memtoregD,memwriteD,alusrcD,regdstD,regwriteD,alucontrolD,hilodstD,hilowriteD,hiloreadD},
-		{memtoregE,memwriteE,alusrcE,regdstE,regwriteE,alucontrolE,hilodstE,hilowriteE,hiloreadE}
+		{memtoregD,memwriteD,alusrcD,regdstD,regwriteD,alucontrolD,hilodstD,hilowriteD,hiloreadD,memreadD,jalrD,rawriteD},
+		{memtoregE,memwriteE,alusrcE,regdstE,regwriteE,alucontrolE,hilodstE,hilowriteE,hiloreadE,memreadE,jalrE,rawriteE}
 		);
-	flopenr #(5) regM(
+	flopenr #(6) regM(
 		clk,rst,~stallM,
-		{memtoregE,memwriteE,regwriteE,hilodstE,hilowriteE},
-		{memtoregM,memwriteM,regwriteM,hilodstM,hilowriteM}
+		{memtoregE,memwriteE,regwriteE,hilodstE,hilowriteE,memreadE},
+		{memtoregM,memwriteM,regwriteM,hilodstM,hilowriteM,memreadM}
 		);
 	flopenr #(4) regW(
 		clk,rst,~stallW,

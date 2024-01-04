@@ -18,12 +18,19 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
+`include "defines2.vh"
 
-
-module eqcmp(
+module compare(
 	input wire [31:0] a,b,
+	input wire [5:0] op,
+	input wire [4:0] rt,
 	output wire y
     );
 
-	assign y = (a == b) ? 1 : 0;
+	assign y = ((op == `BEQ) && (a == b)) ||
+	           ((op == `BNE) && (a != b)) ||
+	           ((op == `BGTZ) && (a[31] == 0) && (a != 32'b0)) ||
+	           ((op == `BLEZ) && (a[31] == 1) || (a == 32'b0)) ||
+	           ((op == `REGIMM_INST) && rt[0] && (a[31] == 0)) ||
+	           ((op == `REGIMM_INST) && ~rt[0]&& (a[31] == 1));
 endmodule

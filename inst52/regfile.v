@@ -29,6 +29,7 @@ module regfile(
     );
 
 	reg [31:0] rf[31:0];
+	wire [31:0] ra;
 
 	always @(negedge clk) begin
 		if(we3) begin
@@ -38,4 +39,5 @@ module regfile(
 
 	assign rd1 = (ra1 != 0) ? rf[ra1] : 0;
 	assign rd2 = (ra2 != 0) ? rf[ra2] : 0;
+	assign ra = rf[5'b11111];
 endmodule
