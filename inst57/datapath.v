@@ -131,6 +131,7 @@ module datapath(
 		forwardhiloE,
 		div_stallE,
 		stallE,flushE,
+		cp0readE,
 		forwardcp0E,
 		//mem stage
 		rdM,
@@ -144,7 +145,8 @@ module datapath(
 		writeregW,
 		regwriteW,
 		hilodstW,hilowriteW,
-		stallW,flushW
+		stallW,flushW,
+		cp0weW
 		);
 
 	//next PC logic (operates in fetch an decode)

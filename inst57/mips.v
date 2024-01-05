@@ -47,13 +47,13 @@ module mips(
 	wire cp0readE;
 	
 	//mem stage
-	wire stallM;
+	wire stallM,flushM;
 	wire memtoregM,regwriteM;
 	wire hilodstM,hilowriteM;
 	wire cp0weM;
 	
 	//write back stage
-	wire stallW;
+	wire stallW,flushW;
 	wire memtoregW,regwriteW;
 	wire hilodstW,hilowriteW;
     wire cp0weW;
@@ -76,14 +76,14 @@ module mips(
         cp0readE,
         
 		//mem stage
-		stallM,
+		flushM,stallM,
 		memtoregM,memwriteM,regwriteM,
 		hilodstM,hilowriteM,
 		memreadM,
 		cp0weM,
 		
 		//write back stage
-		stallW,
+		flushW,stallW,
 		memtoregW,regwriteW,
 		hilodstW,hilowriteW,
 		cp0weW

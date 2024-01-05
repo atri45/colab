@@ -40,13 +40,13 @@ module controller(
 //	output wire divE,signed_divE,
 
 	//mem stage
-	input wire stallM,
+	input wire flushM, stallM,
 	output wire memtoregM,memwriteM,regwriteM,
 	output wire hilodstM,hilowriteM,
 	output wire memreadM,
 	output wire cp0weM,
 	//write back stage
-	input wire stallW,
+	input wire flushW, stallW,
 	output wire memtoregW,regwriteW,
     output wire hilodstW,hilowriteW,
     output wire cp0weW
@@ -89,13 +89,13 @@ module controller(
 		{memtoregD,memwriteD,alusrcD,regdstD,regwriteD,alucontrolD,hilodstD,hilowriteD,hiloreadD,memreadD,jalrD,rawriteD,cp0weD,cp0readD,eretD},
 		{memtoregE,memwriteE,alusrcE,regdstE,regwriteE,alucontrolE,hilodstE,hilowriteE,hiloreadE,memreadE,jalrE,rawriteE,cp0weE,cp0readE,eretE}
 		);
-	flopenr #(7) regM(
-		clk,rst,~stallM,
+	flopenrc #(7) regM(
+		clk,rst,~stallM,flushM,
 		{memtoregE,memwriteE,regwriteE,hilodstE,hilowriteE,memreadE,cp0weE},
 		{memtoregM,memwriteM,regwriteM,hilodstM,hilowriteM,memreadM,cp0weM}
 		);
-	flopenr #(5) regW(
-		clk,rst,~stallW,
+	flopenrc #(5) regW(
+		clk,rst,~stallW,flushW,
 		{memtoregM,regwriteM,hilodstM,hilowriteM,cp0weM},
 		{memtoregW,regwriteW,hilodstW,hilowriteW,cp0weW}
 		);
