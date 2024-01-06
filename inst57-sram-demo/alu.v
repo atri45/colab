@@ -1,0 +1,148 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 2017/11/02 14:52:16
+// Design Name: 
+// Module Name: alu
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+`include "defines2.vh"
+
+module alu(
+    input clk,rst,flushE,
+	input wire[31:0] a,b,
+	input wire[4:0] sa,
+	input wire[4:0] alucontrol,
+	output reg[31:0] y,
+	input[63:0] hilo_o,
+	output reg[63:0] hilo_i,
+	output reg div_stall,
+	output wire overflow,
+	input wire[31:0] cp0data
+//	output wire zero
+    );
+    reg div_start;
+	reg div_signed;
+    reg [31:0] a_save; //除法时保存两个操作数，防止因为M阶段的刷新，继而数据前推选择器信号改变，导致alu输入发生变化，使除法出错
+	reg [31:0] b_save;
+    
+    wire [63:0]div_result;
+    
+    //wire div_signed, div_cancel, div_valid;
+    
+    wire div_ready;
+    wire annul; //终止除法信号
+	assign annul = 1'b0;
+    //reg start_i = 0, signed_div_i=0;
+    wire addoverflow, suboverflow;
+    
+    div div(clk,rst,div_signed,a_save,b_save,div_start,annul,div_result,div_ready);
+    //assign div_cancel = 0;
+    //assign div_signed = (alucontrol == `DIV_CONTROL);
+    //assign div_valid = ~div_ready & ((alucontrol == `DIV_CONTROL)|(alucontrol == `DIVU_CONTROL));
+    //div DIV(~clk,rst,signed_div_i,a,b,start_i,div_cancel,div_result,div_ready);
+    //assign div_stall = start_i;
+    assign addoverflow = (a[31] && b[31] && !y[31]) || (!a[31 ]&& !b[31] && y[31]);
+    assign suboverflow = (a[31] && !b[31] && !y[31]) || (!a[31] && b[31] && y[31]);
+    assign overflow = ((alucontrol == `ADD_CONTROL) && addoverflow) || ((alucontrol == `SUB_CONTROL) && suboverflow);
+//    always@(posedge div_valid or posedge div_ready or posedge div_signed)begin
+//        if(div_valid)
+//            start_i = 1'b1;
+//        if(div_signed)
+//            signed_div_i = 1'b1;
+//        if(div_ready)begin
+//            start_i = 1'b0;
+//            signed_div_i = 1'b0;
+//        end
+//    end
+    
+	always @(*) begin
+		hilo_i = 64'b0;
+		if(rst) begin
+			div_stall = 1'b0;
+			div_start = 1'b0;
+		end
+        case (alucontrol)
+            `AND_CONTROL: y <= a & b;
+            `OR_CONTROL: y <= a | b;
+            `XOR_CONTROL: y <= a ^ b;
+            `NOR_CONTROL: y <= ~ (a | b);
+            `LUI_CONTROL: y <= {b[15:0], 16'b0};
+             //移位指令
+            `SLL_CONTROL: y<= b << sa;
+            `SRL_CONTROL: y<= b >> sa;
+            `SRA_CONTROL: y<= ( {32{b[31]}} << (6'd32 - {1'b0,sa}) ) | b >> sa;
+            //`SRA_CONTROL: y<= $signed(b) >>> sa;
+            `SLLV_CONTROL: y<= b << a[4:0];
+            `SRLV_CONTROL: y<= b >> a[4:0];
+            `SRAV_CONTROL: y<= ( {32{b[31]}} << (6'd32 - {1'b0,a[4:0]}) ) | b >> a[4:0];
+           //`SRAV_CONTROL: y<= $signed(b) >>> a[4:0];
+           //数据移动指令
+            `MFHI_CONTROL: y <= hilo_o[63:32];
+            `MFLO_CONTROL: y <= hilo_o[31:0];
+            `MTHI_CONTROL: hilo_i <= {a, hilo_o[31:0]};
+            `MTLO_CONTROL: hilo_i <= {hilo_o[63:32],a}; 
+            //算术运算指令
+            `ADD_CONTROL:y<=$signed(a) + $signed(b);
+            `ADDU_CONTROL: y <= a+b;
+            `SUB_CONTROL, `SUBU_CONTROL: y <= a + (~b + 1);
+            `SLT_CONTROL: y <= $signed(a) < $signed(b);
+            `SLTU_CONTROL: y <= a < b;
+            `MULTU_CONTROL: hilo_i <= {32'b0, a} * {32'b0, b};
+            `MULT_CONTROL:  hilo_i <= $signed(a) * $signed(b);
+            `DIV_CONTROL: //hilo_i <= div_result;
+            begin //指令DIV, 除法器控制状态机逻辑
+					if(~div_ready & ~div_start) begin //~div_start : 为了保证除法进行过程中，除法源操作数不因ALU输入改变而重新被赋值
+						//必须非阻塞赋值，否则时序不对
+						div_start <= 1'b1;
+						div_signed <= 1'b1;
+						div_stall <= 1'b1;
+						a_save <= a; //除法时保存两个操作数
+						b_save <= b;
+					end
+					else if(div_ready) begin
+						div_start <= 1'b0;
+						div_signed <= 1'b1;
+						div_stall <= 1'b0;
+						hilo_i <= div_result;
+					end
+				end
+                
+            `DIVU_CONTROL: //hilo_i <= div_result;
+            begin //指令DIVU, 除法器控制状态机逻辑
+					if(~div_ready & ~div_start) begin //~div_start : 为了保证除法进行过程中，除法源操作数不因ALU输入改变而重新被赋值
+						//必须非阻塞赋值，否则时序不对
+						div_start <= 1'b1;
+						div_signed <= 1'b0;
+						div_stall <= 1'b1;
+						a_save <= a; ////除法时保存两个操作数
+						b_save <= b;
+					end
+					else if(div_ready) begin
+						div_start <= 1'b0;
+						div_signed <= 1'b0;
+						div_stall <= 1'b0;
+						hilo_i <= div_result;
+					end
+				end
+            
+            //特权指令
+            `MTC0_CONTROL: y <= b;
+            `MFC0_CONTROL: y <= cp0data;
+            default: y<=`ZeroWord;
+        endcase
+    end
+
+endmodule
