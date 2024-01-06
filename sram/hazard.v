@@ -96,19 +96,19 @@ module hazard(
     assign forwardcp0E = ((cp0readE != 0) && cp0weM && rdM == rdE);
 
 	//stalls
-	assign #1 lwstallD = memtoregE & (rtE == rsD | rtE == rtD);
-	assign #1 branchstallD = branchD &
+	assign  lwstallD = memtoregE & (rtE == rsD | rtE == rtD);
+	assign  branchstallD = branchD &
 				(regwriteE & 
 				(writeregE == rsD | writeregE == rtD) |
 				memtoregM &
 				(writeregM == rsD | writeregM == rtD));
-	assign #1 stallD = lwstallD | branchstallD | div_stallE;
-	assign #1 stallF = stallD;
-	assign #1 stallE = div_stallE;
-	assign #1 stallM = 0;
-	assign #1 stallW = 0;
+	assign  stallD = lwstallD | branchstallD | div_stallE;
+	assign  stallF = stallD;
+	assign  stallE = div_stallE;
+	assign  stallM = 0;
+	assign  stallW = 0;
 		//stalling D stalls all previous stages
-    assign #1 flushexceptM = (|excepttypeM);
+    assign  flushexceptM = (|excepttypeM);
     assign flushF = flushexceptM;
     assign flushD = flushexceptM;
 	assign flushE = stallD & ~stallE | flushexceptM;

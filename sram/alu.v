@@ -36,7 +36,7 @@ module alu(
     wire div_signed, div_cancel, div_valid;
     wire [63:0]div_result;
     wire div_ready;
-    reg start_i = 0, signed_div_i=0;
+    reg start_i=0 , signed_div_i=0;
     reg [31:0]a_save, b_save;
     wire addoverflow, suboverflow;
     assign div_cancel = 0;
@@ -53,7 +53,7 @@ module alu(
         if(div_signed)
             signed_div_i <= 1'b1;
         if(div_ready)begin
-            start_i = 1'b0;
+            start_i <= 1'b0;
             signed_div_i <= 1'b0;
         end
     end

@@ -95,7 +95,7 @@ module datapath(
 	wire instadelE,is_in_delayslotE;
 	wire [31:0]cp0dataE,cp0data2E;
 	//mem stage
-	wire flushM;
+	//wire flushM;
 	wire [4:0] rdM;
 	wire [4:0] writeregM;
 	wire [63:0] hilo_iM;
@@ -111,7 +111,7 @@ module datapath(
 	wire [31:0] excepttypeM,count_oM,compare_oM,status_oM,cause_oM,epc_oM, config_oM,prid_oM,badvaddrM;
 	wire flushexceptM;
 	//writeback stage
-	wire flushW;
+	//wire flushW;
 	wire [31:0] aluoutW,readdataW;
     
     
