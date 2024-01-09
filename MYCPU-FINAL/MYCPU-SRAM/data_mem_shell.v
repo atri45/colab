@@ -31,8 +31,7 @@ module data_mem_shell(
     output wire adel,
     output wire ades
     );
-    
-    
+
     assign select = ((op == `LW || op == `LB || op == `LBU || op == `LH || op == `LHU)? 4'b0000:
               (op == `SW && aluout == 2'b00)? 4'b1111:
               (op == `SH && aluout == 2'b10)? 4'b1100:
@@ -43,8 +42,7 @@ module data_mem_shell(
               (op == `SB && aluout == 2'b01)? 4'b0010:
               (op == `SB && aluout == 2'b00)? 4'b0001:
               4'b0000);
-    
-    
+
     assign writedata_o = ((op == `SW)? writedata_i:
         (op == `SH)? {writedata_i[15:0],writedata_i[15:0]}:
         (op == `SB)? {writedata_i[7:0],writedata_i[7:0],writedata_i[7:0],writedata_i[7:0]}:
@@ -68,7 +66,5 @@ module data_mem_shell(
     
     assign adel = ((op == `LH || op == `LHU) && aluout[0]) || (op == `LW && aluout != 2'b00);
     assign ades = (op == `SH & aluout[0]) | (op == `SW & aluout != 2'b00);
-        
-        
-        
+
 endmodule

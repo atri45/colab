@@ -111,8 +111,8 @@ module maindec(
     assign break = (op == `R_TYPE && funct == `BREAK); 
     assign syscall = (op == `R_TYPE && funct == `SYSCALL);
               
-   // 特权指令
-   assign cp0we = (instr[31:21] == 11'b0100_0000_100 && instr[10:0] == 11'b00000000000); //MTC0
-   assign cp0read = (instr[31:21] == 11'b01000000000 && instr[10:0] == 11'b00000000000); //MFC0 
-   assign eret = (instr == 32'b01000010000000000000000000011000); //ERET
+    // 特权指令
+    assign cp0we = (instr[31:21] == 11'b0100_0000_100 && instr[10:0] == 11'b00000000000); //MTC0
+    assign cp0read = (instr[31:21] == 11'b01000000000 && instr[10:0] == 11'b00000000000); //MFC0
+    assign eret = (instr == 32'b01000010000000000000000000011000); //ERET
 endmodule

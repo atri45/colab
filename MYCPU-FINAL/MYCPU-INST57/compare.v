@@ -34,14 +34,4 @@ module compare(
 	           ((op == `REGIMM_INST) && rt[0] && (a[31] == 0))   ||
 	           ((op == `REGIMM_INST) && ~rt[0]&& (a[31] == 1))   ||
 	           ((op == `R_TYPE) && (funct == `JR || funct == `JALR));
-//	wire beq, bne, bgtz, blez, bgezal, bltzal, j;
-//	assign beq = (op == `BEQ) && (a == b);
-//	assign bne = (op == `BNE) && (a != b);
-//	assign bgtz = (op == `BGTZ) && (a[31] == 0) && (a != 32'b0);
-//	assign blez = (op == `BLEZ) && ((a[31] == 1) || (a == 32'b0));
-//	assign bgezal = (op == `REGIMM_INST) && rt[0] && (a[31] == 0);
-//	assign bltzal = (op == `REGIMM_INST) && ~rt[0]&& (a[31] == 1);
-//	assign j = (op == `R_TYPE) && (funct == `JR || funct == `JALR);
-	
-//	assign y = beq || bne || bgtz || blez || bgezal || bltzal || j; 
 endmodule

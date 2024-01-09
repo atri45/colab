@@ -102,7 +102,6 @@ module datapath(
 	wire instadelE,is_in_delayslotE;
 	wire [31:0]cp0dataE,cp0data2E;
 	//mem stage
-	//wire flushM;
 	wire [4:0] rdM;
 	wire [4:0] writeregM;
 	wire [63:0] hilo_iM;
@@ -118,7 +117,6 @@ module datapath(
 	wire [31:0] excepttypeM,count_oM,compare_oM,status_oM,cause_oM,epc_oM,config_oM,prid_oM,badvaddrM;
 	wire flushexceptM;
 	//writeback stage
-	//wire flushW;
 	wire [31:0] aluoutW,readdataW;
 	wire [31:0] status_oW,cause_oW,epc_oW;
     
@@ -168,7 +166,6 @@ module datapath(
 	//next PC logic (operates in fetch an decode)
 	mux4 #(32) pcmux(pcplus4F, pcbranchD, {pcplus4D[31:28],instrD[25:0],2'b00}, srca2D, {jumpD, branchD&cmpresultD}, pcnextFD);
 
-	//regfile (operates in decode and writeback)
 	regfile rf(clk,regwriteW,rsD,rtD,writeregW,resultW,srcaD,srcbD);
 	//fetch stage logic
 	pc #(32) pcreg(clk,rst,~stallF,flushF,pcnextFD,newpcM,pcF);
@@ -232,10 +229,8 @@ module datapath(
     flopenrc #(6) r7M(clk,rst,~stallM,flushM,{instadelE,syscallE,breakE,eretE,invalidE,overflowE},{instadelM,syscallM,breakM,eretM,invalidM,overflowM});
     flopenrc #(1) r8M(clk,rst,~stallM,flushM,is_in_delayslotE,is_in_delayslotM);
     flopenrc #(32) r9M(clk,rst,~stallM,flushM,pcE,pcM);
-    
-    //assign bad_addrM = (instadelM)? pcM: (adelM | adesM)? aluoutM: 32'b0;
+
     assign bad_addrM = (instadelM)? pcM:aluoutM;
-    //assign mem_enM = (~adelM & ~adesM); //存储器使能，防止异常地址写入或读出
     assign mem_enM = (~adelM & ~adesM)&(memreadM|memwriteM);
     data_mem_shell dms(opM,aluoutM[1:0],readdataM,writedataM,readdata_o,writedata_o,selectM,adelM,adesM);
     hilo_reg hilo(clk,rst,hilowriteM,hilo_iM[63:32],hilo_iM[31:0],hilo_oM[63:32],hilo_oM[31:0]);

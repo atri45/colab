@@ -25,8 +25,6 @@ module mips(
 	input wire[5:0]ext_int,
 	output wire[31:0] pcF,
 	input  wire[31:0] instrF,
-//	output wire memwriteM,
-//	output wire memreadM,
     output wire mem_enM,
 	output wire[31:0] aluoutM,writedataM,
 	output wire[3:0] selectM,

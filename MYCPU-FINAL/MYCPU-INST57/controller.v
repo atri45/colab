@@ -37,7 +37,6 @@ module controller(
 	output wire[4:0] alucontrolE,
 	output wire hilodstE,hilowriteE,hiloreadE,
 	output wire cp0readE,
-//	output wire divE,signed_divE,
 
 	//mem stage
 	input wire flushM, stallM,
@@ -53,13 +52,11 @@ module controller(
     );
 	
 	//decode stage
-//	wire[1:0] aluopD;
 	wire memtoregD,memwriteD,alusrcD,regdstD,regwriteD;
 	wire[4:0] alucontrolD;
 	wire hilodstD,hilowriteD,hiloreadD;
 	wire memreadD;
 	wire cp0weD,cp0readD;
-//	wire divD,signed_divD;
 	
 	//execute stage
 	wire memwriteE;

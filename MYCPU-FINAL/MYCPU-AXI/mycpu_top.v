@@ -1,29 +1,3 @@
-// module top(
-// 	input wire clk,rst,
-// 	output wire[31:0] writedata,dataadr,
-// 	output wire memwrite
-//     );
-// 	// wire clk;
-// 	wire[31:0] pc,instr,readdata;
-
-// 	//   clk_div instance_name(
-//  //    	// Clock out ports
-// 	//     .clk_out1(hclk),     // output clk_out1
-// 	//    // Clock in ports
-// 	//     .clk_in1(clk)
-//  //    	); 
-   	
-
-// 	mips mips(clk,rst,pc,instr,memwrite,dataadr,writedata,readdata);
-// 	inst_mem imem(clk,pc[7:2],instr);
-// 	data_mem dmem(clk,memwrite,dataadr,writedata,readdata);
-// endmodule
-
-/**
-使用下面的top
-*/
-
-//SoC top
 module mycpu_top(
 	input aclk,aresetn,
 	input [5:0] ext_int,

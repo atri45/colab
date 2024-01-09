@@ -9,7 +9,7 @@ module d_sram_to_sram_like(
     output wire d_stall,
 
     //sram like
-    output wire data_req,    //
+    output wire data_req,
     output wire data_wr,
     output wire [1:0] data_size,
     output wire [31:0] data_addr,   

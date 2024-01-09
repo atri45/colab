@@ -25,18 +25,16 @@ module mips(
 	input wire[5:0]ext_int,
 	
 	output wire[31:0] pcF,
-	output wire instr_enF,//
+	output wire instr_enF,
 	input  wire[31:0] instrF,
-	input wire i_stall,//
-	
-//	output wire memwriteM,
-//	output wire memreadM,
+	input wire i_stall,
+
     output mem_enM,
 	output wire[31:0] aluoutM,writedataM,
 	output wire[3:0] selectM,
 	input  wire[31:0] readdataM,
-	input wire d_stall,//
-	output wire longest_stall,//
+	input wire d_stall,
+	output wire longest_stall,
 	
 	output wire[31:0] pcW,
 	output wire regwriteW, 

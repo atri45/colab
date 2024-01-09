@@ -2,7 +2,7 @@ module mips_core_with_sram_like(
     input clk,
     input resetn,  //low active
     input wire [5:0] ext_int,
-//instr
+    //instr
     output wire inst_req,
     output wire inst_wr,
     output wire [1:0] inst_size,
@@ -43,32 +43,21 @@ module mips_core_with_sram_like(
     wire longest_stall;
     
 // �?个例�?
-	//wire [31:0] pc;
+
 	wire [31:0] instr;
-	//wire memwrite;
-	//wire memread;
-	//wire [3:0] select;
-	//wire [31:0] aluout, writedata, readdata;
     wire [31:0] pcW;
     wire regwriteW;
     wire stallW;
 	wire [4:0] writeregW;
 	wire [31:0] resultW;
-	//wire no_dcache;
     mips mips(
         .clk(clk),
         .rst(resetn),
         .ext_int(ext_int),
-        //instr
-        // .inst_en(inst_en),
         .pcF(inst_sram_addr),                    //pcF
         .instr_enF(inst_sram_en),
         .instrF(inst_sram_rdata),              //instrF
         .i_stall(i_stall),
-        //data
-        // .data_en(data_en),
-//        .memwriteM(memwrite),
-//        .memreadM(memread),
         .mem_enM(data_sram_en),
         .aluoutM(data_sram_addr),
         .writedataM(data_sram_wdata),
@@ -81,27 +70,9 @@ module mips_core_with_sram_like(
         
         .pcW(pcW),.regwriteW(regwriteW),.writeregW(writeregW),.resultW(resultW),.stallW(stallW)
     );
-//    mmu mmu(
-//        .inst_vaddr(pc),
-//        .inst_paddr(inst_sram_addr),
-//        .data_vaddr(aluout),
-//        .data_paddr(data_sram_addr),
-//        .no_dcache(no_dcache)
-//    );
 
-//    assign inst_sram_en = 1'b1;     //如果有inst_en，就用inst_en
-//    assign inst_sram_wen = 4'b0;
-//    assign inst_sram_wdata = 32'b0;
-//    assign instr = inst_sram_rdata;
-
-    //assign data_sram_en = (memread|memwrite);     //?????data_en??????data_en
-    //assign data_sram_wen = select;
-    //assign data_sram_addr = aluout;
-    //assign data_sram_wdata = writedata;
-    //assign readdata = data_sram_rdata;
     wire regwrite_for_debugW = stallW ? 0 : regwriteW;
     assign debug_wb_pc = pcW;
-    //assign debug_wb_rf_wen = {4{regwriteW}};
     assign debug_wb_rf_wen = {4{regwrite_for_debugW}};
     assign debug_wb_rf_wnum = writeregW; 
     assign debug_wb_rf_wdata = resultW;
@@ -111,7 +82,7 @@ module mips_core_with_sram_like(
         .instr(inst_sram_rdata)
     );
     
-        //inst sram to sram-like
+    //inst sram to sram-like
     i_sram_to_sram_like i_sram_to_sram_like(
         .clk(clk), .rst(resetn),
         //sram

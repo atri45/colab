@@ -34,7 +34,6 @@ module maindec(
 	output wire rawrite,
 	output wire breakM,syscall,cp0we,cp0read,eret,
 	output reg invalid
-//	output wire[1:0] aluop
     );
     
     //�����߸������ź�+1
@@ -52,11 +51,6 @@ module maindec(
                     default: controls <= 8'b11000000;//R-TYRE
                 endcase
 			end
-			//6'b100011:controls <= 8'b10100100;//LW
-			//6'b101011:controls <= 8'b00101000;//SW
-			//6'b000100:controls <= 8'b00010000;//BEQ
-			//6'b000010:controls <= 8'b00000010;//J
-			//6'b001000:controls <= 7'b1010000;//ADDI
 			`ANDI:controls <= 8'b10100000;// ANDI
 			`XORI:controls <= 8'b10100000;// XORI
 			`LUI:controls <= 8'b10100000;// LUI

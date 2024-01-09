@@ -107,16 +107,12 @@ module hazard(
 	assign  stallE = div_stallE;
 	assign  stallM = 0;
 	assign  stallW = 0;
-		//stalling D stalls all previous stages
+
     assign  flushexceptM = (|excepttypeM);
     assign flushF = flushexceptM;
     assign flushD = flushexceptM;
 	assign flushE = stallD & ~stallE | flushexceptM;
 	assign flushM = flushexceptM|div_stallE;
 	assign flushW = flushexceptM;
-		//stalling D flushes next stage
-	// Note: not necessary to stall D stage on store
-  	//       if source comes from load;
-  	//       instead, another bypass network could
-  	//       be added from W to M
+
 endmodule
