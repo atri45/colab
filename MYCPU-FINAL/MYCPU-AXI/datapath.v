@@ -35,7 +35,7 @@ module datapath(
 	output  wire[31:0] instrD,
 	output  wire[5:0] opD,functD,
 	output  wire[4:0] rtD,
-	input   wire breakMD,syscallD,invalidD,eretD,jalrD,rawriteD,
+	input   wire breakD,syscallD,invalidD,eretD,jalrD,rawriteD,
 	//execute stage
 	input   wire memtoregE,jalrE,rawriteE,
 	input   wire alusrcE,regdstE,
@@ -98,9 +98,9 @@ module datapath(
 	wire div_stallE;
 	wire [5:0]opE;
 	wire overflowE;
-	wire breakME,syscallE,invalidE,eretE;
+	wire breakE,syscallE,invalidE,eretE;
 	wire instadelE,is_in_delayslotE;
-	wire [31:0]cp0dataE,cp0data2E,count_oE,compare_oE,status_oE,cause_oE,epc_oE, config_oE,prid_oE,badvaddrE;
+	wire [31:0]cp0dataE,cp0data2E;
 	//mem stage
 	//wire flushM;
 	wire [4:0] rdM;
@@ -115,11 +115,12 @@ module datapath(
 	wire [31:0] bad_addrM;
 	wire [31:0] pcM,newpcM;
 	wire is_in_delayslotM;
-	wire [31:0] excepttypeM,count_oM,compare_oM,status_oM,cause_oM,epc_oM, config_oM,prid_oM,badvaddrM;
+	wire [31:0] excepttypeM,count_oM,compare_oM,status_oM,cause_oM,epc_oM,config_oM,prid_oM,badvaddrM;
 	wire flushexceptM;
 	//writeback stage
 	//wire flushW;
 	wire [31:0] aluoutW,readdataW;
+	wire [31:0] status_oW,cause_oW,epc_oW;
     
     
 	//hazard detection
@@ -207,7 +208,7 @@ module datapath(
     flopenrc #(5) r7E(clk,rst,~stallE,flushE,saD,saE);
     flopenrc #(6) r8E(clk,rst,~stallE,flushE,opD,opE);
     flopenrc #(32) r9E(clk,rst,~stallE,flushE,pcplus8D,pcplus8E);
-    flopenrc #(5) r10E(clk,rst,~stallE,flushE,{instadelD,syscallD,breakMD,eretD,invalidD},{instadelE,syscallE,breakME,eretE,invalidE});
+    flopenrc #(5) r10E(clk,rst,~stallE,flushE,{instadelD,syscallD,breakD,eretD,invalidD},{instadelE,syscallE,breakE,eretE,invalidE});
     flopenrc #(1) r11E(clk,rst,~stallE,flushE,is_in_delayslotD,is_in_delayslotE);
     flopenrc #(32) r12E(clk,rst,~stallE,flushE,pcD,pcE);
     
@@ -228,29 +229,18 @@ module datapath(
     flopenrc #(64) r4M(clk,rst,~stallM,flushM,hilo_iE,hilo_iM);
     flopenrc #(6) r5M(clk,rst,~stallM,flushM,opE,opM);
     flopenrc #(5) r6M(clk,rst,~stallM,flushM,rdE,rdM);
-    flopenrc #(6) r7M(clk,rst,~stallM,flushM,{instadelE,syscallE,breakME,eretE,invalidE,overflowE},{instadelM,syscallM,breakM,eretM,invalidM,overflowM});
+    flopenrc #(6) r7M(clk,rst,~stallM,flushM,{instadelE,syscallE,breakE,eretE,invalidE,overflowE},{instadelM,syscallM,breakM,eretM,invalidM,overflowM});
     flopenrc #(1) r8M(clk,rst,~stallM,flushM,is_in_delayslotE,is_in_delayslotM);
     flopenrc #(32) r9M(clk,rst,~stallM,flushM,pcE,pcM);
-	// flopenrc #(32) r10M(clk,rst,~stallM,flushM,count_oE,count_oM);
-	// flopenrc #(32) r11M(clk,rst,~stallM,flushM,compare_oE,compare_oM);
-	// flopenrc #(32) r12M(clk,rst,~stallM,flushM,status_oE,status_oM);
-	// flopenrc #(32) r13M(clk,rst,~stallM,flushM,cause_oE,cause_oM);
-	// flopenrc #(32) r14M(clk,rst,~stallM,flushM,epc_oE,epc_oM);
-	// flopenrc #(32) r15M(clk,rst,~stallM,flushM,config_oE,config_oM);
-	// flopenrc #(32) r16M(clk,rst,~stallM,flushM,prid_oE,prid_oM);
-	// flopenrc #(32) r17M(clk,rst,~stallM,flushM,badvaddrE,badvaddrM);
-    wire [4:0] rdW;
+    
     //assign bad_addrM = (instadelM)? pcM: (adelM | adesM)? aluoutM: 32'b0;
     assign bad_addrM = (instadelM)? pcM:aluoutM;
-    //assign mem_enM = (~adelM & ~adesM); //?洢??????????????д??????
+    //assign mem_enM = (~adelM & ~adesM); //存储器使能，防止异常地址写入或读出
     assign mem_enM = (~adelM & ~adesM)&(memreadM|memwriteM);
     data_mem_shell dms(opM,aluoutM[1:0],readdataM,writedataM,readdata_o,writedata_o,selectM,adelM,adesM);
     hilo_reg hilo(clk,rst,hilowriteM,hilo_iM[63:32],hilo_iM[31:0],hilo_oM[63:32],hilo_oM[31:0]);
-    exception exception(rst,ext_int,cp0weW,rdW,aluoutW,adelM,adesM,instadelM,syscallM,breakM,eretM,invalidM,overflowM,status_oM,cause_oM,epc_oM,excepttypeM,newpcM,isexceptM);
-
-	// cp0 CP0(clk,rst,cp0weM,rdM,rdE,aluoutM,ext_int,excepttypeM,pcM,is_in_delayslotM,
-    // bad_addrM,cp0dataE,count_oM,compare_oM,status_oM,cause_oM,epc_oM,config_oM,prid_oM,badvaddrM);
-	cp0 CP0(clk,rst,cp0weW,rdW,rdE,aluoutW,ext_int,excepttypeM,pcM,is_in_delayslotM,
+    exception exception(rst,ext_int,adelM,adesM,instadelM,syscallM,breakM,eretM,invalidM,overflowM,status_oW,cause_oW,epc_oW,excepttypeM,newpcM,isexceptM);
+    cp0 CP0(clk,rst,cp0weM,rdM,rdE,aluoutM,ext_int,excepttypeM,pcM,is_in_delayslotM,
     bad_addrM,cp0dataE,count_oM,compare_oM,status_oM,cause_oM,epc_oM,config_oM,prid_oM,badvaddrM);
     
 	//writeback stage
@@ -258,7 +248,9 @@ module datapath(
 	flopenrc #(32) r2W(clk,rst,~stallW,flushW,readdata_o,readdataW);
 	flopenrc #(5) r3W(clk,rst,~stallW,flushW,writeregM,writeregW);
 	flopenrc #(32) r4W(clk,rst,~stallW,flushW,pcM,pcW);
-	flopenrc #(5) r5W(clk,rst,~stallW,flushW,rdM,rdW);
+	flopenrc #(32) r5W(clk,rst,~stallW,flushW,status_oM,status_oW);
+	flopenrc #(32) r6W(clk,rst,~stallW,flushW,cause_oM,cause_oW);
+	flopenrc #(32) r7W(clk,rst,~stallW,flushW,epc_oM,epc_oW);
 	mux2 #(32) resmux(aluoutW,readdataW,memtoregW,resultW);
 	
 endmodule
